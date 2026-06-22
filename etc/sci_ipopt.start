@@ -1,0 +1,98 @@
+// ====================================================================
+// Copyright Yann COLLETTE 2009-2010
+// Copyright Stephane MOTTELET 2020-2021
+// This file is released into the public domain
+// ====================================================================
+
+etc_tlbx  = get_absolute_file_path("sci_ipopt.start");
+etc_tlbx  = getshortpathname(etc_tlbx);
+root_tlbx = strncpy( etc_tlbx, length(etc_tlbx)-length("\etc\") );
+
+mprintf("Start SciIPOpt %s: ",mgetl(fullfile(root_tlbx,"VERSION")));
+
+if isdef("sci_ipoptlib") then
+	warning("SciIPOpt module is already loaded");
+	return;
+end
+
+//Load  functions library
+// =============================================================================
+//mprintf("\tLoad macros\n");
+//pathmacros = pathconvert( root_tlbx ) + "macros" + filesep();
+//sci_ipoptlib = lib(pathmacros);
+//clear pathmacros;
+
+// load gateways
+// =============================================================================
+mprintf("load gateways, ");
+[a, opt] = getversion();
+Version = opt(2);
+ilib_verbose(0);
+if getos()=="Windows" then
+    dll_base_dir = root_tlbx + filesep()+"thirdparty" + filesep() + "Windows" + filesep() + "bin";
+    // try
+    //     link(dll_base_dir+filesep()+"ipopt-3.dll");
+    // catch
+    //     result = messagebox(["Your Intel Fortran Runtime library is outdated."
+    //                          "To upgrade this library and allow sci_ipopt to be loaded click on ""Continue"""], "sci_ipopt warning", "warning", ["Continue" "Stop"], "modal");
+    //     if result == 2
+    //         abort
+    //     end
+    //     sourcelib = fullpath(fullfile(dll_base_dir,'libifcoremd.dll'));
+    //     destlib = fullpath(fullfile(SCI,'bin','libifcoremd.dll'));
+    //     testdest = fullpath(fullfile(SCI,'bin','test'));
+    //     cmd = ["@ECHO OFF"
+    //            ":LOOP"
+    //            "tasklist | find /i ""WScilex"" >nul 2>&1"
+    //            "IF ERRORLEVEL 1 ("
+    //            "GOTO COPY"
+    //            ") ELSE ("
+    //            "ECHO Waiting for Scilab to exit"
+    //            "Timeout /T 5 /Nobreak"
+    //            "GOTO LOOP"
+    //            ")"
+    //            ":COPY"
+    //            msprintf("copy ""%s"" ""%s""\n",sourcelib,destlib)
+    //            "echo Your Intel Fortran Runtime library has been successfully upgraded, press any key to restart Scilab"
+    //            "pause>nul"
+    //             msprintf(msprintf("powershell -Command ""Start-Process %s/bin/WScilex.exe""",SCI));
+    //            "exit"];
+    //     cmdFile = TMPDIR+"\windows_ifort_fix.bat";
+    //     mputl(cmd,cmdFile)
+    //     [fd,err] = mopen(testdest,"w");
+    //     if err <> 0
+    //         dos(msprintf("powershell -Command ""Start-Process %s -Verb RunAs""",cmdFile));
+    //     else
+    //         mclose(fd)
+    //         deletefile(testdest);
+    //         dos(msprintf("powershell -Command ""Start-Process %s""",cmdFile));
+    //     end
+    //     quit
+    // end
+end
+
+exec(pathconvert(root_tlbx + filesep() + "sci_gateway" + filesep() + "loader_gateway.sce",%f));
+
+// Load and add help chapter
+// =============================================================================
+if or(getscilabmode() == ["NW";"STD"]) then
+	mprintf("help, ");
+	path_addchapter = pathconvert(root_tlbx + filesep() + "jar");
+	if ( isdir(path_addchapter) <> [] ) then
+		add_help_chapter("SciIPOpt", path_addchapter, %F);
+		clear add_help_chapter;
+	end
+	clear path_addchapter;
+end
+
+// Load demos
+// =============================================================================
+if or(getscilabmode() == ["NW";"STD"]) then
+	mprintf("demos.");
+	pathdemos = pathconvert(root_tlbx + filesep() + "demos" + filesep() + "sci_ipopt.dem.gateway.sce",%F,%T);
+	add_demo("SciIPOpt",pathdemos);
+	clear pathdemos add_demo;
+end
+
+clear root_tlbx;
+clear etc_tlbx;

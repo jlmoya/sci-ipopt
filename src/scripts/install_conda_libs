@@ -1,0 +1,53 @@
+#!/bin/bash
+#
+# Scilab ( http://www.scilab.org/ ) - This file is part of Scilab
+# Copyright (C) 2023 - Stéphane MOTTELET
+# For more information, see the COPYING file which you should have received
+# along with this program.
+#
+# Helper script allowing to copy the libraries actually used by a toolbox
+# side by side with the main toolbox gateways library
+
+if [ "$#" -ne 2 ]; then
+    echo -e "\nUsage: install_conda_libs <scilab binary> <library>\n"
+    exit 1
+fi
+
+SCIBIN=$1
+LIBRARY=$2
+# Create a Scilab script forcing load of all dependencies then
+# loading toolbox gateways library
+cat >$TMPDIR/load_dyn_modules.sce <<EOL
+for m = ls(fullfile(SCI,"modules"))'
+   lib = fullfile(SCI,"modules",m,".libs","libsci"+m+".dylib");
+   if isfile(lib)
+       try
+          link(lib)
+       catch
+       end
+   end
+end
+mprintf("LOAD_TOOLBOX\n");
+link('$LIBRARY');
+EOL
+# Launch Scilab and print the dynamic libraries
+# which are loaded when running above script:
+dylibs=$(
+DYLD_PRINT_LIBRARIES=yes $SCIBIN -nwni -quit -f $TMPDIR/load_dyn_modules.sce 2>&1 | \
+    grep LOAD_TOOLBOX -A 1000 | \
+    grep -v unloaded | \
+    awk '/dyld: loaded/ {print $NF}'
+)
+DEST=$(dirname $LIBRARY)
+# copy libraries
+for lib in $dylibs; do
+      install -v $lib $DEST
+done
+# fix RPATH in main toolbox library
+prefix=$(
+otool -l $LIBRARY | \
+grep LC_RPATH -A 2 | \
+grep path | \
+awk '{print $2}'
+)
+install_name_tool -rpath $prefix @loader_path $LIBRARY

@@ -1,0 +1,903 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<refentry xmlns="http://docbook.org/ns/docbook" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:svg="http://www.w3.org/2000/svg" xmlns:ns3="http://www.w3.org/1999/xhtml" xmlns:mml="http://www.w3.org/1998/Math/MathML" xmlns:db="http://docbook.org/ns/docbook" version="5.0-subset Scilab" xml:id="ipopt" xml:lang="en">
+  <refnamediv>
+    <refname>ipopt</refname>
+    <refpurpose>Ipopt interior point optimizer</refpurpose>
+  </refnamediv>
+  <refsynopsisdiv>
+    <title>Calling Sequence</title>
+    <synopsis>
+        [x_sol, f_sol, extra] = ipopt(problem)
+        [x_sol, f_sol, extra] = ipopt(x0, f, df, g, dg, sparse_dg, dh, sparse_dh, var_lin_type, constr_lin_type, constr_rhs, constr_lhs, x_lower, x_upper, int_cb,  params)
+</synopsis>
+  </refsynopsisdiv>
+  <refsection>
+    <title>Input parameters</title>
+    <varlistentry>
+      <term>problem</term>
+      <listitem>
+        <para>A structure with fields having the same name and meaning as the formal input arguments described below. When using this one argument syntax, parameters are
+            given as fields of the problem structure.</para>
+      </listitem>
+    </varlistentry>
+    <variablelist>
+      <varlistentry>
+        <term>x0</term>
+        <listitem>
+          <para>real vector, the initial guess for x.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>f</term>
+        <listitem>
+          <para>a function, a list or a string, the objective function.</para>
+          <itemizedlist>
+            <listitem>
+              <para>the Scilab prototype can take one of the following forms</para>
+              <screen><![CDATA[
+f_value = f(x,x_new)
+[f_value, df_value] = f(x,x_new)
+[f_value, df_value, h_value] = f(x,x_new)
+]]></screen>
+              <para><literal>x_new</literal> is false if any evaluation method was previously 
+	        called with the same values in <literal>x</literal>, true
+	        otherwise.</para>
+            <para>The second form is expected when <term>df</term> is an empty matrix. It has to return the value
+            of the gradient of the objective function when two output arguments are present.</para>
+<para>The third form is expected when <term>df</term> and <term>dh</term> are empty matrices, no non-linear constraints are specified and exact hessian is expected (<term>params.hessian_approximation == "exact""</term>)). It has to return the value
+            of the Hessian of the objective function when three output arguments are present.</para>                
+        </listitem>
+            <listitem>
+                <para>the C prototype of the objective function is:</para>
+                <screen><![CDATA[
+int f_C(double * x, double * f, int n_size_x, double x_new);
+]]></screen>
+              <para><literal>x_new</literal> is false if any evaluation method was previously 
+	        called with the same values in <literal>x</literal>, true
+	        otherwise.</para>
+              <para><literal>x</literal> is a vector of size <literal>n_size_x</literal>. It containts the
+	        evaluation point.</para>
+              <para><literal>f</literal> is a scalar. It will containt the
+	        value of the objective function.</para>
+              <para>This function returns 1 is nothing wrong
+                happens. It returns 0 when something during the
+                evaluation went wrong. By doing so, the optimization
+                will be interrupted.</para>
+            </listitem>
+          </itemizedlist>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>df</term>
+        <listitem>
+          <para>a function, a list or a string, the gradient of the objective function. It can be an empty matrix if <term>f</term> is a Scilab function returning the the objective function and its gradient (see above).
+          </para>
+          <itemizedlist>
+            <listitem>
+              <para>the Scilab prototype is:</para>
+              <screen><![CDATA[
+df_value = df(x,x_new)
+]]></screen>
+              <para><literal>x_new</literal> false if any evaluation method was previously 
+	        called with the same values in <literal>x</literal>, true
+	        otherwise.</para>
+            </listitem>
+            <listitem>
+              <para>the C prototype is:</para>
+              <screen><![CDATA[
+int df_C(double * x, double * f, int n_size_x, double x_new);
+]]></screen>
+              <para><literal>x_new</literal> is false if any evaluation method was previously 
+	        called with the same values in <literal>x</literal>, true
+	        otherwise.</para>
+              <para><literal>x</literal> is a vector of size <literal>n_size_x</literal>. It containts the
+	        evaluation point.</para>
+              <para><literal>f</literal> is a vector of size <literal>n_size_x</literal>. It will containt the
+	        value of the gradient of the objective function.</para>
+              <para>This function returns 1 is nothing wrong
+                happens. It returns 0 when something during the
+                evaluation went wrong. By doing so, the optimization
+                will be interrupted.</para>
+            </listitem>
+          </itemizedlist>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>g</term>
+        <listitem>
+          <para>a function, a list or a string, the value of the constraints.</para>
+          <itemizedlist>
+            <listitem>
+                <para>the Scilab prototype can take one of the following two forms</para>
+                <screen><![CDATA[
+g_value = g(x,x_new)
+[g_value, dg_value] = g(x,x_new)
+]]></screen>
+                <para><literal>x_new</literal> is false if any evaluation method was previously 
+  	        called with the same values in <literal>x</literal>, true
+  	        otherwise.</para>
+              <para>The second form is expected when <term>dg</term> is an empty matrix. It has to return the
+	        values of the non empty elements of the Jacobian when two output arguments are present.</para>
+            </listitem>
+            <listitem>
+              <para>the C prototype is:</para>
+              <screen><![CDATA[
+int g_C(double * x, int n_size_x, double * g, int n_size_g, double x_new);
+]]></screen>
+              <para><literal>x_new</literal> false if any evaluation method was previously 
+	        called with the same values in <literal>x</literal>, true
+	        otherwise.</para>
+              <para><literal>x</literal> is a vector of size <literal>n_size_x</literal>. It containts the
+	        evaluation point.</para>
+              <para><literal>g</literal> is a vector of size <literal>n_size_g</literal>. It will containt the
+	        value of the constraints function.</para>
+              <para>This function returns 1 is nothing wrong
+                happens. It returns 0 when something during the
+                evaluation went wrong. By doing so, the optimization
+                will be interrupted.</para>
+            </listitem>
+          </itemizedlist>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>dg</term>
+        <listitem>
+          <para>a function, a list or a string, the derivative/Jacobian of the constraints. It can be an empty matrix if <term>g</term> is a Scilab function returning the constraints and the constraints Jacobian (see above) or if <term>jacobian_approximation</term> field of <term>params</term> is set to "finite-difference-values".</para>
+          <itemizedlist>
+            <listitem>
+              <para>the Scilab prototype is:</para>
+              <screen><![CDATA[
+dg_value = dg(x,x_new)
+]]></screen>
+      <para>The parameters of the prototype are:</para>
+      <itemizedlist>
+        <listitem>
+            <para>The output <literal>dg_value</literal> contains the non-zero values of the constraints Jacobian with following convention:</para>
+            <itemizedlist>
+              <listitem>
+                <para>If <term>sparse_dg</term> is empty then <literal>dg_value</literal> must contain the full Jacobian.</para>
+              </listitem>
+              <listitem>
+            <para>If <term>sparse_dg</term> is a full matrix then <literal>dg_value</literal> must return the vector of non-zeros terms of the Jacobian.</para>
+          </listitem>
+          <listitem>
+            <para>If <term>sparse_dg</term> is a sparse matrix then <literal>dg_value</literal> must return the Jacobian as a sparse matrix with the same zero terms.</para>
+          </listitem>
+        </itemizedlist>
+          <para><literal>x_new</literal> false if any evaluation method was previously 
+  called with the same values in x, true otherwise.</para>
+        </listitem>
+      </itemizedlist>
+            </listitem>
+            <listitem>
+              <para>the C prototype is:</para>
+              <screen><![CDATA[
+int dg_C(double * x, int n_size_x, double new_x, int n_size_g, int nnz_jac, double * values);
+]]></screen>
+              <para><literal>x_new</literal> is false if any evaluation method was previously 
+	        called with the same values in x, true otherwise.</para>
+              <para><literal>x</literal> is a vector of size <literal>n_size_x</literal>. It containts the
+	        evaluation point.</para>
+              <para><literal>values</literal> is a vector of size <literal>nnz_jac</literal>. It will containt the
+	        values of the non zero elements of the Jacobian.</para>
+              <para>This function returns 1 is nothing wrong
+                happens. It returns 0 when something during the
+                evaluation went wrong. By doing so, the optimization
+                will be interrupted.</para>
+            </listitem>
+          </itemizedlist>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>sparse_dg</term>
+        <listitem>
+          <para>A full or sparse matrix.</para>
+          <para>If <term>sparse_dg</term> is a full matrix with 2 columns it gives the sparsity pattern of the constraints Jacobian. Each row
+          has the form <literal>row,col</literal> indicating that the corresponding term of the Jacobian is non-zero.
+          </para>
+          <para>If <term>sparse_dg</term> is a sparse matrix it defines the sparsity pattern of the constraints Jacobian, i.e. all zero terms of <term>sparse_dg</term> 
+          are supposed to vanish in the Jacobian. </para>
+          <para>Note: the sparsity pattern is fixed at initialization hence supposed to be the same from one iteration to another.</para>
+          <para> If <term>sparse_dg</term> is empty the constraints Jacobian is supposed to be full.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>dh</term>
+        <listitem>
+          <para>a function, a list or a string, the Hessian of the Lagrangian. If <term>dh</term> is the empty matrix, then the Hessian is approximated as a full matrix with a limited-memmory BFGS formula.</para>
+          <itemizedlist>
+            <listitem>
+              <para>the Scilab prototype is:</para>
+              <screen><![CDATA[
+dh_value = dh(x,x_new,weight,lambda,lambda_new)
+]]></screen>
+              <para>The parameters of the prototype are:</para>
+              <itemizedlist>
+                <listitem>
+                    <para>The output <literal>dh_value</literal> contains the non-zero values of the Hessian with the following convention:</para>
+                    <itemizedlist>
+                      <listitem>
+                        <para>If <term>sparse_dh</term> is empty then <literal>dh_value</literal> must contain the full Hessian as a square matrix.</para>
+                      </listitem>
+                      <listitem>
+                    <para>If <term>sparse_dh</term> is a full matrix then <literal>dh_value</literal> must return the vector of non-zeros terms of the Hessian.</para>
+                  </listitem>
+                  <listitem>
+                    <para>If <term>sparse_dh</term> is a sparse matrix then <literal>dh_value</literal> must return the Hessian as a sparse matrix with the same zero terms.</para>
+                  </listitem>
+                </itemizedlist>
+                  <para><literal>x_new</literal> false if any evaluation method was previously 
+  		    called with the same values in x, true otherwise.</para>
+                </listitem>
+                <listitem>
+                  <para><literal>weight</literal> factor in front of the objective 
+		    term in the Hessian, <latex style="text">\sigma_f</latex>.</para>
+                </listitem>
+                <listitem>
+                  <para><literal>lambda</literal> the values for the constraint
+		    multipliers, <latex style="text">\lambda</latex>, at which the Hessian is
+		    to be evaluated.</para>
+                </listitem>
+                <listitem>
+                  <para><literal>lambda_new</literal> false if any evaluation method was previously
+		    called with the same values in lambda, true
+		    otherwise.</para>
+                </listitem>
+              </itemizedlist>
+            </listitem>
+            <listitem>
+              <para>the C prototype is:</para>
+              <screen><![CDATA[
+int dh_C(double * x, int n_size_x, double x_new, double obj_factor, int n_size_g, double * lambda,
+         double lambda_new, int nnz_hess, double * values);
+]]></screen>
+              <para>The parameters of the prototype are:</para>
+              <itemizedlist>
+                <listitem>
+                  <para><literal>x</literal> is a vector of size <literal>n_size_x</literal>. It containts the
+	            evaluation point.</para>
+                  <para><literal>values</literal> is a vector of size <literal>nnz_hess</literal>. It will contain the
+	            values of the non-zero elements of the lower triangle of the Hessian.</para>
+                  <para><literal>lambda</literal> the values for the constraint
+		    multipliers (a vector of size <literal>n_size_g</literal>, 
+                    <latex style="text">\lambda</latex>, at which the Hessian is
+		    to be evaluated.</para>
+                </listitem>
+                <listitem>
+                  <para><literal>obj_factor</literal> is the weight coefficient in front of the objective 
+		    term in the Hessian, <latex style="text">\sigma_f</latex>.</para>
+                </listitem>
+                <listitem>
+                  <para><literal>x_new</literal> false if any evaluation method was previously 
+		    called with the same values in <literal>x</literal>, true otherwise.</para>
+                </listitem>
+                <listitem>
+                  <para><literal>lambda_new</literal> false if any evaluation method was previously
+		    called with the same values in <literal>lambda</literal>, true
+		    otherwise.</para>
+                </listitem>
+              </itemizedlist>
+            </listitem>
+          </itemizedlist>
+        </listitem>
+        <listitem>
+        If <term>dh</term> is an empty matrix then the <literal>hessian_approximation</literal> field of <term>params</term> is
+        forced to "limited-memory".
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>sparse_dh</term>
+        <listitem>
+          <para>A full or sparse matrix.</para>
+          <para>If <term>sparse_dh</term> is a full matrix with 2 columns it gives the sparsity pattern of the Hessian. Each row
+          has the form <literal>row,col</literal> indicating that the corresponding term of the Hessian is non-zero.</para>
+          <para>If <term>sparse_dh</term> is a sparse matrix it defines the sparsity pattern of the Hessian, i.e. all zero terms of <term>sparse_dh</term> 
+          are supposed to vanish in the Hessian. </para>
+          <para>Note: the sparsity pattern is fixed at initialization hence supposed to be the same from one iteration to another.</para>
+          <para>Since the Hessian is symmetric, you can eventually specify only terms of the lower triangular part.</para>            
+          <para>If <term>sparse_dh</term> is empty the Hessian is supposed to be full.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>var_lin_type</term>
+        <listitem>
+          <para>a vector which indicates if a variable is linear or not</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>constr_lin_type</term>
+        <listitem>
+          <para>a vector which indicates if a constraints is linear or
+          not</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>constr_rhs</term>
+        <listitem>
+          <para>the right hand side vector of boundary of the
+          constraints</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>constr_lhs</term>
+        <listitem>
+          <para>the left hand side vector of boundary of the
+          constraints</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>x_lower</term>
+        <listitem>
+          <para>the lower boundary of the variables</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>x_upper</term>
+        <listitem>
+          <para>the upper boundary of the variables</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>int_cb</term>
+        <listitem>
+          <para>A function
+  	  which is called at each iterations. This function allows (among other tasks, like plotting) the
+  	  user to stop ipopt when he wants. The prototype of the
+  	  intermediate callback function is:</para>
+          <screen><![CDATA[
+continue_ipopt = intermediate_callback(params)
+]]></screen>
+          <para>If continue_ipopt is equal to 1, then ipopt
+  	continues. Otherwise, if continue_ipopt is equal to 0, ipopt
+  	stops.</para>
+          <para>params is a structure which has the following fields:</para>
+          <itemizedlist>
+              <listitem>
+                <para><literal>x</literal> : the current value of the primal variable.</para>
+              </listitem>
+              <listitem>
+                <para><literal>lambda</literal> : the current value of the Lagrange multiplier of the general constraints.</para>
+              </listitem>
+              <listitem>
+                <para><literal>zL</literal> : the current value of the Lagrange multiplier of the lower bound constraints.</para>
+              </listitem>
+              <listitem>
+                <para><literal>zU</literal> : the current value of the Lagrange multiplier of the upper bound constraints.</para>
+              </listitem>
+            <listitem>
+              <para><literal>algorithm_mode</literal> : 0 -
+  	      RegularMode or 1 - RestorationPhaseMode. The above 4 fields (primal and dual variables) are not available in restoration mode.</para>
+            </listitem>
+            <listitem>
+              <para><literal>iter</literal> : the current iteration
+  	      count. This includes regular iterations and iterations
+  	      while in restoration phase. If the algorithm is in the
+  	      restoration phase, the letter r' will be appended to the
+  	      iteration number.</para>
+            </listitem>
+            <listitem>
+                <para><literal>obj_value</literal> : the unscaled
+                    objective value at the current point. During the
+                    restoration phase, this value remains the unscaled
+                    objective value for the original problem.</para>
+            </listitem>
+            <listitem>
+                <para><literal>prev_obj_value</literal> : the unscaled
+                    objective value at the previous point.</para>
+            </listitem>
+            <listitem>
+              <para><literal>inf_pr</literal> : the scaled primal
+  	      infeasibility at the current point. During the restoration
+  	      phase, this value is the primal infeasibility of the
+  	      original problem at the current point.</para>
+            </listitem>
+            <listitem>
+              <para><literal>inf_du</literal> : the scaled dual
+  	      infeasibility at the current point. During the restoration
+  	      phase, this is the value of the dual infeasibility for the
+  	      restoration phase problem.</para>
+            </listitem>
+            <listitem>
+              <para><literal>mu</literal> : the value of the barrier
+  	    parameter mu.</para>
+            </listitem>
+            <listitem>
+              <para><literal>d_norm</literal> : the infinity norm
+  	      (max) of the primal step (for the original
+  	      variables <literal>x</literal> and the internal slack
+  	      variables <literal>s</literal>). During the restoration
+  	      phase, this value includes the values of additional
+  	      variables, <literal>p</literal>
+  	      and <literal>n</literal> </para>
+            </listitem>
+            <listitem>
+              <para><literal>regularization_size</literal> : the value
+  	      of the regularization term for the Hessian of the
+  	      Lagrangian in the augmented system.
+  	    </para>
+            </listitem>
+            <listitem>
+              <para><literal>alpha_du</literal> : the stepsize for the
+  	      dual variables.</para>
+            </listitem>
+            <listitem>
+              <para><literal>alpha_pr</literal> : the stepsize for the
+  	      primal variables.</para>
+            </listitem>
+            <listitem>
+                <para><literal>ls_trials</literal> : the number of
+                    backtracking line search steps.</para>
+            </listitem>
+            <listitem>
+                <para><literal>curr_nlp_error</literal> : the total optimality error for the original NLP at the current iterate, using scaling factors based on multipliers. </para>
+            </listitem>
+          </itemizedlist>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>params</term>
+        <listitem>
+          <para>a structure which handles parameters allowing a fine
+          tuning of ipopt (see <link linkend="ipopt_parameters">Ipopt parameters</link>).</para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+</refsection>    
+    <refsection>
+      <title>Output parameters</title>
+      <variablelist>
+        <varlistentry>
+        <term>x_sol</term>
+        <listitem>
+          <para>the solution found by ipopt</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>f_sol</term>
+        <listitem>
+          <para>the value of the objective function corresponding to the
+          solution found by ipopt</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>extra</term>
+        <listitem>
+          <para>a structure which handles the state of ipopt at the end of the
+          optimization</para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <para>Parameters of the extra structure</para>
+    <itemizedlist>
+      <listitem>
+        <para><literal>extra.status</literal> :</para>
+        <itemizedlist>
+          <listitem>
+            <para><emphasis>0</emphasis> - <literal>Optimal Solution Found.</literal></para>
+            <para>This message indicates that IPOPT found a (locally)
+	      optimal point within the desired tolerances. </para>
+          </listitem>
+          <listitem>
+            <para><emphasis>1</emphasis> - <literal>Maximum Number of Iterations Exceeded.</literal></para>
+            <para>This indicates that IPOPT has exceeded the maximum number of
+	      iterations as specified by the option 'max_iter'.</para>
+          </listitem>
+          <listitem>
+            <para><emphasis>2</emphasis> - <literal>Maximum CPU time exceeded.</literal></para>
+            <para>This indicates that IPOPT has exceeded the maximum CPU time s as specified by the option 'max_cpu_time'.</para>
+          </listitem>
+          <listitem>
+            <para><emphasis>3</emphasis> - <literal>Search Direction is becoming Too Small.</literal></para>
+            <para>This indicates that IPOPT is calculating very small step sizes and
+	      making very little progress. This could happen if the
+	      problem has been solved to the best numerical accuracy
+	      possible given the current scaling. </para>
+          </listitem>
+          <listitem>
+            <para><emphasis>4</emphasis> - <literal>Solved To Acceptable Level.</literal></para>
+            <para>This indicates that the algorithm did not converge to the
+	      'desired' tolerances, but that it was able to obtain a
+	      point satisfying the 'acceptable' tolerance level as
+	      specified by acceptable-* options. This may happen if the
+	      desired tolerances are too small for the current
+	      problem. </para>
+          </listitem>
+          <listitem>
+            <para><emphasis>5</emphasis> - <literal>Converged to a point of local
+	      infeasibility. Problem may be infeasible.</literal></para>
+            <para>The restoration phase converged to a point that is a minimizer for the
+	      constraint violation (in the <latex style="text">\ell_1</latex>-norm), but is not
+	      feasible for the original problem. This indicates that the
+	      problem may be infeasible (or at least that the algorithm
+	      is stuck at a locally infeasible point). The returned
+	      point (the minimizer of the constraint violation) might
+	      help you to find which constraint is causing the
+	      problem. If you believe that the NLP is feasible, it might
+	      help to start the optimization from a different point. </para>
+          </listitem>
+          <listitem>
+            <para><emphasis>6</emphasis> - <literal>Stopping optimization at current point as requested by user.</literal></para>
+            <para>This message is printed if the user call-back method
+	      intermediate_callback returned false.</para>
+          </listitem>
+          <listitem>
+            <para><emphasis>7</emphasis> - <literal>Feasible point for square problem found.</literal></para>
+            <para>This message is printed if the problem is 'square'
+	      (i.e., it has as many equality constraints as free
+	      variables) and IPOPT found a feasible point. </para>
+          </listitem>
+          <listitem>
+            <para><emphasis>8</emphasis> - <literal> Iterates divering; problem might be unbounded.</literal></para>
+            <para>This message is printed if the max-norm of the iterates
+	      becomes larger than the value of the option
+	      'diverging_iterates_tol'. This can happen if the problem is
+	      unbounded below and the iterates are diverging.</para>
+          </listitem>
+          <listitem>
+            <para><emphasis>9</emphasis> - <literal>Restoration Failed.</literal></para>
+            <para>This indicates that the restoration phase failed to find a
+	      feasible point that was acceptable to the filter line
+	      search for the original problem. This could happen if the
+	      problem is highly degenerate, does not satisfy the
+	      constraint qualification, or if your NLP code provides
+	      incorrect derivative information.</para>
+          </listitem>
+          <listitem>
+            <para><emphasis>10</emphasis> - <literal>Error in step computation.</literal></para>
+            <para>This messages is printed if IPOPT is unable to compute a search
+	      direction, despite several attempts to modify the
+	      iteration matrix. Usually, the value of the regularization
+	      parameter then becomes too large. One situation where this
+	      can happen is when values in the Hessian are invalid (%nan
+	      or %inf). You can check whether this is true by using the
+	      'check_derivatives_for_naninf' option.</para>
+          </listitem>
+          <listitem>
+            <para><emphasis>11</emphasis> - <literal>Invalid number in NLP function or derivative detected.</literal></para>
+          </listitem>
+          <listitem>
+            <para><emphasis>12</emphasis> - <literal>Problem has too few degrees of freedom.</literal></para>
+            <para>This indicates that your problem, as specified, has too few degrees of
+	      freedom. This can happen if you have too many equality
+	      constraints, or if you fix too many variables (IPOPT
+	      removes fixed variables).</para>
+          </listitem>
+          <listitem>
+            <para><emphasis>13</emphasis> - <literal>Invalid option</literal> (details about the particular error will be output to the console)</para>
+            <para>This indicates that there was some problem specifying the options. See
+	      the specific message for details.</para>
+          </listitem>
+          <listitem>
+            <para><emphasis>14</emphasis> - <literal>Not enough memory.</literal></para>
+            <para>An error occurred while trying to allocate memory. The problem may be
+	      too large for your current memory and swap configuration.</para>
+          </listitem>
+          <listitem>
+            <para><emphasis>15</emphasis> - <literal>Unknown SolverReturn value - Notify IPOPT Authors.</literal></para>
+            <para>An unknown internal error has occurred. Please notify the authors of
+	      IPOPT via the mailing list.</para>
+          </listitem>
+        </itemizedlist>
+      </listitem>
+      <listitem>
+        <para><literal>extra.lambda</literal> : the Lagrange
+        multipliers (the constraints multiplier)</para>
+      </listitem>
+      <listitem>
+        <para><literal>extra.zL</literal> : the Lagrange
+        multipliers for the lower bound constaint</para>
+      </listitem>
+      <listitem>
+        <para><literal>extra.zU</literal> : the Lagrange
+        multipliers for the upper bound constraint</para>
+      </listitem>
+      <listitem>
+        <para><literal>extra.it_count</literal> : iteration needed to solve
+        the problem</para>
+      </listitem>
+      <listitem>
+        <para><literal>extra.cpu_time</literal> : cpu time needed to solve
+        the problem</para>
+      </listitem>
+      <listitem>
+        <para><literal>extra.fobj_eval</literal> : number of objective
+        function evaluation</para>
+      </listitem>
+      <listitem>
+        <para><literal>extra.fobj_grad_eval</literal> : number of gradient
+        of objective function evaluation</para>
+      </listitem>
+      <listitem>
+        <para><literal>extra.constr_eval</literal> : number of constraint
+        function evaluation</para>
+      </listitem>
+      <listitem>
+        <para><literal>extra.constr_jac_eval</literal> : number of gradient
+        of constraint function evaluation</para>
+      </listitem>
+      <listitem>
+        <para><literal>extra.hess_eval</literal> : number of hessian
+        function evaluation</para>
+      </listitem>
+      <listitem>
+        <para><literal>extra.dual_inf</literal> : dual infeasibility of the
+        problem</para>
+      </listitem>
+      <listitem>
+        <para><literal>extra.constr_viol</literal> : constraint
+        violation</para>
+      </listitem>
+      <listitem>
+        <para><literal>extra.complementarity</literal> :
+        complementarity</para>
+      </listitem>
+      <listitem>
+        <para><literal>extra.kkt_error</literal> : kkt error</para>
+      </listitem>
+    </itemizedlist>
+  </refsection>
+  <refsection>
+    <title>Description</title>
+    <para>Optimize the following non linear optimization problem with equality
+    and inequality constraints:</para>
+    <latex style="display" align="center"><![CDATA[
+\begin{eqnarray}
+\mbox{min} & f\left(x\right) & \\
+\mbox{subject to} & g_{lower} \leq g\left(x\right) \leq g_{upper} & \\
+\mbox{and} & x_{i}^{\mbox{min}}\leq x_{i}\leq x_{i}^{\mbox{max}} & i=1,\cdots,n
+\end{eqnarray}
+]]></latex>
+    <para>This interface uses the Ipopt (Interior Point Optimizer) method to
+    perform the optimization of a non-linear optimization problem with constraints.</para>
+  </refsection>
+  <refsection>
+    <title>Example using only Scilab functions to compute f, df, g,
+    dg, h, dh.</title>
+    <programlisting role="example"><![CDATA[ 
+// Definition of the optimization problem
+
+// The objective function
+function y=f(x,x_new)
+    y=4*x(1) - x(2)^2 - 12;
+end
+  
+function y=df(x,x_new)
+    y(1) = 4;
+    y(2) = -2*x(2);
+end
+
+// The constraints
+function y=g(x,x_new)
+    y(1) = - 10*x(1) + x(1)^2 - 10*x(2) + x(2)^2 + 34;
+    y(2) = 20 - x(1)^2 - x(2)^2;
+end
+
+function y=dg(x,x_new)
+    y(1) = -10 + 2*x(1)
+    y(2) = -10 + 2*x(2);
+    y(3) = -2*x(1);
+    y(4) = -2*x(2);
+end
+
+// The sparsity structure of the constraints
+sparse_dg = [1 1; 1 2; 2 1; 2 2];
+
+// The Hessian of the Lagrangian (lower triangle non-zero terms)
+function y = dh(x,x_new,obj_weight,lambda,lambda_new)
+    y(1) = lambda(1)*2 - lambda(2)*2;
+    y(2) = -obj_weight*2 + lambda(1)*2 - lambda(2)*2;
+end
+
+// The sparsity structure of the lower triangle of the Hessian of the Lagrangian
+sparse_dh = [1 1;2 2];
+
+upper = [15;15];
+lower = [-15;-15];
+x0    = [-12;-12]; // Feasible starting point
+
+var_lin_type    = [1 1]; // Non-Linear
+constr_lin_type = [1 1]; // Non-Linear
+constr_rhs      = [0 0];
+constr_lhs      = [-10000 0];
+
+////////////////////////////////////////////////////////////////////////
+
+params = struct();
+params.hessian_approximation = "exact";
+
+[x_sol, f_sol, extra] = ipopt(x0, f, df, g, dg, sparse_dg, dh, sparse_dh, var_lin_type, constr_lin_type, ...
+                              constr_rhs, constr_lhs, lower, upper, [], params);
+disp(x_sol)
+disp(extra)
+]]></programlisting>
+</refsection>  
+  <refsection>
+    <title>An example using a problem structure</title>
+    <programlisting role="example"><![CDATA[ 
+        function f=residual(x,_t,_y)
+            z=x(1)*cos(x(2)*_t+x(3)).*exp(x(4)*_t.^2);
+            r=z-_y;
+            f=sum(r.*r);    
+        endfunction
+        
+        // a combined objective and gradient of objective function
+        // with user parameters _t and _y
+        function [f,df] = costf(x, new_x, _t, _y)
+            f = residual(x);
+            if argn(1) == 2 then
+                n=length(x)    
+                df=zeros(n,1);
+                xi=x;
+                //gradient with complex step
+                dx = 1e-100;
+                for k=1:n
+                    xi(k)=complex(x(k),dx);
+                    df(k) = imag(residual(xi,_t,_y))/dx;
+                    xi(k)=x(k);
+                end
+            end
+        endfunction
+
+        // a combined constraints and constraints Jacobian function
+        function [g,dg] = constr(x,new_x)
+            g = norm(x)^2-6;
+            if argn(1) == 2 then
+                dg =  2*x;
+            end    
+        endfunction
+
+        // intermediate callback function with user parameters _t and _y
+        function out = intcb(param,_t,_y)
+            if isfield(param,"x")
+                x = param.x;
+                z=x(1)*cos(x(2)*_t+x(3)).*exp(x(4)*_t.^2);
+                drawlater
+                clf
+                plot(_t,z,_t,_y,'o')
+                gca().data_bounds(3:4)=[-1.5,1.5];
+                legend model data
+                drawnow
+            end
+            out = %t;
+        endfunction
+
+        // generate the data to be fitted
+        t=linspace(-10,10,100);
+        y=cos(2*t+1).*exp(-0.1*t.^2);
+        y=y+rand(y,'normal')/10;
+
+        // specify the optimization problem using a structure
+        problem = struct();
+        problem.x0 = rand(4,1);
+        problem.f = list(costf,t,y);
+        problem.g = constr;
+        problem.constr_rhs = 0;
+        problem.constr_lhs = -%inf;
+        problem.x_lower = [0 0 0 -%inf];
+        problem.x_upper = [%inf %inf %inf 0];
+        problem.int_cb =  list(intcb,t,y);
+                       
+        [x,f,extra] = ipopt(problem);
+
+        disp(x,extra)
+]]></programlisting>
+</refsection>
+<refsection>
+    <title>Example where the objective function yields gradient and Hessian</title>
+    <programlisting role="example"><![CDATA[ 
+function [f, g, H] = rosenfgh(x,xnew)
+    f = 100*(x(2) - x(1)^2)^2 + (1-x(1))^2;
+    if argn(1) > 1 // g required
+        g = [-400*(x(2)-x(1)^2)*x(1)-2*(1-x(1));
+            200*(x(2)-x(1)^2)];
+        if argn(1) > 2// H required
+            H = [1200*x(1)^2-400*x(2)+2, -400*x(1);
+                -400*x(1), 200];  
+        end
+    end
+end
+
+problem = struct();
+problem.f = rosenfgh;
+problem.x0 = [0;0];
+problem.hessian_approximation = "exact";
+
+x=ipopt(problem);
+ ]]></programlisting>
+  </refsection>
+<refsection>
+    <title>An example using only C functions</title>
+    <programlisting role="example"><![CDATA[ 
+        f_C = ['#include <math.h>'
+                'int f_C(double * x, double * f, int n_size_x, double x_new)'
+                '{'
+                '  f[0] = 5*pow(x[0],2) - 3*pow(x[1],2);'
+                '  return 1;'
+                '}'];
+
+        df_C = ['#include <math.h>'
+                'int df_C(double * x, double * df, int n_size_x, double x_new)'
+                '{'
+                '  df[0] = 10*x[0];'
+                '  df[1] = -6*x[1];'
+                '  return 1;'
+                '}'];
+
+        g_C = ['#include <math.h>'
+               'int g_C(double * x, int n_size_x, double * g, int n_size_g, double x_new)'
+               '{'
+               '  g[0] = -x[0];'
+               '  g[1] = -x[1];'
+               '  return 1;'
+               '}'];
+
+        dg_C = ['#include <math.h>'
+                '#include <stdio.h>'
+                'int dg_C(double * x, int n_size_x, double new_x, int n_size_g, double * values)'
+                '{'
+                '  values[0] = -1;'
+                '  values[1] = -1;'
+                '  return 1;'
+                '}'];
+
+        current_dir = pwd();
+        cd TMPDIR;
+        mputl(f_C, TMPDIR+'/ipopt_demo_f_C.c');
+        mputl(df_C,TMPDIR+'/ipopt_demo_df_C.c');
+        mputl(g_C, TMPDIR+'/ipopt_demo_g_C.c');
+        mputl(dg_C,TMPDIR+'/ipopt_demo_dg_C.c');
+
+        // compile the C code
+        printf('Compilation of the f_C function\n');
+        f_C_handle  = ilib_for_link('f_C', 'ipopt_demo_f_C.c', [],'c');
+        printf('Compilation of the df_C function\n');
+        df_C_handle = ilib_for_link('df_C','ipopt_demo_df_C.c',[],'c');
+        printf('Compilation of the g_C function\n');
+        g_C_handle  = ilib_for_link('g_C', 'ipopt_demo_g_C.c', [],'c');
+        printf('Compilation of the dg_C function\n');
+        dg_C_handle = ilib_for_link('dg_C','ipopt_demo_dg_C.c',[],'c');
+
+        // incremental linking
+        link(f_C_handle, 'f_C', 'c');
+        link(df_C_handle,'df_C','c');
+        link(g_C_handle, 'g_C', 'c');
+        link(dg_C_handle,'dg_C','c');
+
+        cd(current_dir);
+
+        upper = [ 4  4];
+        lower = [-4 -4];
+        x0    = [1 1];
+  
+        var_lin_type    = [1 1]; // Non-Linear
+        constr_lin_type = [0 0]; // Linear
+        constr_rhs      = [0 0];
+        constr_lhs      = -[%inf %inf];
+
+        sparse_dg = [1 1; 2 2];
+             
+        [x_sol, f_sol, extra] = ipopt(x0, 'f_C', 'df_C', 'g_C', 'dg_C', sparse_dg, [], [], ...
+                                      var_lin_type, [], constr_rhs, constr_lhs, lower, upper, [])
+ ]]></programlisting>
+  </refsection>
+  <refsection>
+    <title>See Also</title>
+    <simplelist type="inline">
+      <member><link linkend="ipopt_parameters">Ipopt parameters</link></member>
+    </simplelist>
+  </refsection>
+  <refsection>
+    <title>Authors (Scilab interface)</title>
+    <simplelist type="vert">
+        <member>Stéphane MOTTELET</member>
+        <member>Michael Baudin</member>
+        <member>Yann COLLETTE</member>
+    </simplelist>
+  </refsection>
+  <refsection>
+      <title>Bibliography</title>
+      <para>
+          Wächter, A., Biegler, L. On the implementation of an interior-point filter line-search algorithm for large-scale nonlinear programming. Math. Program. 106, 25–57 (2006). https://doi.org/10.1007/s10107-004-0559-y
+      </para>
+  </refsection>
+</refentry>

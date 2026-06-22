@@ -1,0 +1,9 @@
+*.bin
+sci_gateway/**/*.dylib
+sci_gateway/loader_gateway.sce
+loader.sce
+unloader.sce
+cleaner.sce
+jar
+.DS_Store
+*~

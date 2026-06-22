@@ -1,0 +1,51 @@
+changelog of the SciIPOpt Toolbox
+
+## [0.1] - 03/09/2010
+- sci_ipopt-0.1: initial release of the Ipopt toolbox.
+
+## [0.1.1] - 25/10/2012
+- sci_ipopt-0.1.1:
+
+## [0.2] - 21/05/2014 
+- sci_ipopt-0.2: 
+
+## [1.0] - 22/09/2020 
+- sci_ipopt-1.0: major release providing compatibility with Scilab >= 6
+
+## [1.1] - 21/10/2020
+- sci_ipopt-1.1: improved Hessian handling and allow using Scilab sparse matrices
+for the constraint Jacobian and Hessian of the Lagrangian. Better build system under
+all platforms including Windows.
+
+## [1.2] - 07/04/2021
+- sci_ipopt-1.2: improved NaN and Inf handling, better functions call statistics and
+automated upgrade of Intel Fortran runtime under Windows.
+
+## [1.3] - 20/04/2021
+- sci_ipopt-1.3: allow [f,df,dh]=fun() syntax when there are no non-linear constraints
+
+## [1.3.1] - 7/6/2021
+- sci_ipopt-1.3.1 : 
+    * fix multiplication of objective Hessian in the [f,df,dh]=fun() case
+    * use arch in prefix for building thirdparties (Linux and macOS)
+    * fix build for arm64 architecture on Silicon Macs
+    * remove IPOpt banner at start of optimization
+    * don't ask for admin passwd for Intel Fortran lib if not needed (Windows)
+
+## [1.3.2] - 5/7/2021
+- sci_ipopt-1.3.2 :
+    * Update demos (faster display callbacks) 
+
+## [1.3.3] - 13/3/2023
+- sci_ipopt-1.3.3 :
+    * Upgrade to Scilab >= 2023.0.0
+
+## [1.3.4] - 12/6/2024
+- sci_ipopt-1.3.4 :
+    * Upgrade to Scilab >= 2024.1.0, create new version with patches in binary version since 1.3.3
+ 
+## [1.3.5] - 15/10/2025
+- sci_ipopt-1.3.5 :
+    * Upgrade to Scilab >= 2026.0.0
+    * fixes in documentation and demo
+
