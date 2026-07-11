@@ -78,7 +78,7 @@ exec(pathconvert(root_tlbx + filesep() + "sci_gateway" + filesep() + "loader_gat
 if or(getscilabmode() == ["NW";"STD"]) then
 	mprintf("help, ");
 	path_addchapter = pathconvert(root_tlbx + filesep() + "jar");
-	if ( isdir(path_addchapter) <> [] ) then
+	if isdir(path_addchapter) then
 		add_help_chapter("SciIPOpt", path_addchapter, %F);
 		clear add_help_chapter;
 	end
