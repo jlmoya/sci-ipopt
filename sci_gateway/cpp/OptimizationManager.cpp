@@ -790,7 +790,7 @@ bool OptimizationManager::computeFunctionsAndDerivatives(double *x, bool new_x, 
 
     if (out.size() != iRetCount)
     {
-        sprintf(errorMsg, _("%s: Wrong number of output argument(s): %d expected.\n"), m_pCallFunctionName[what], iRetCount);
+        snprintf(errorMsg, sizeof(errorMsg), _("%s: Wrong number of output argument(s): %d expected.\n"), m_pCallFunctionName[what], iRetCount);
         throw ast::InternalError(errorMsg);
     }
         
@@ -802,18 +802,18 @@ bool OptimizationManager::computeFunctionsAndDerivatives(double *x, bool new_x, 
             // Sparse matrix expected
             if (out[i]->isSparse() == false || out[i]->getAs<types::Sparse>()->isComplex())
             {
-                sprintf(errorMsg, _("%s: Wrong type for output argument #%d: sparse real matrix expected.\n"), m_pCallFunctionName[what], i+1);
+                snprintf(errorMsg, sizeof(errorMsg), _("%s: Wrong type for output argument #%d: sparse real matrix expected.\n"), m_pCallFunctionName[what], i+1);
                 throw ast::InternalError(errorMsg);
             }
             types::Sparse *pSp = out[i]->getAs<types::Sparse>();
             if (pSp->getRows() != m_iNbConstraints || pSp->getCols() != m_iNbVariables)
             {
-                sprintf(errorMsg, _("%s: Wrong size for output argument #%d: a matrix with %d rows and %d columns expected.\n"), m_pCallFunctionName[what], i+1, m_iNbConstraints, m_iNbVariables);
+                snprintf(errorMsg, sizeof(errorMsg), _("%s: Wrong size for output argument #%d: a matrix with %d rows and %d columns expected.\n"), m_pCallFunctionName[what], i+1, m_iNbConstraints, m_iNbVariables);
                 throw ast::InternalError(errorMsg);
             }
             if (pSp->nonZeros() > m_iNbConstraintsJacobianNonZeroTerms)
             {
-                sprintf(errorMsg, _("%s: Wrong sparsity pattern for output argument #%d: at most %d non-zero elements expected.\n"), m_pCallFunctionName[what], i+1, m_iNbConstraintsJacobianNonZeroTerms);
+                snprintf(errorMsg, sizeof(errorMsg), _("%s: Wrong sparsity pattern for output argument #%d: at most %d non-zero elements expected.\n"), m_pCallFunctionName[what], i+1, m_iNbConstraintsJacobianNonZeroTerms);
                 throw ast::InternalError(errorMsg);                    
             }
             if (pSp->nonZeros() == m_iNbConstraintsJacobianNonZeroTerms)
@@ -826,7 +826,7 @@ bool OptimizationManager::computeFunctionsAndDerivatives(double *x, bool new_x, 
                 // monotonicity of pattern is not achieved, let's try to fix this
                 if (getSparseValuesFromIncompletePattern(m_pdblIpoptInput[whatArray[i]], m_pSpConstraintsJacPattern, pSp) == false)
                 {
-                    sprintf(errorMsg, _("%s: Wrong sparsity pattern for output argument #%d.\n"), m_pCallFunctionName[what], i+1);
+                    snprintf(errorMsg, sizeof(errorMsg), _("%s: Wrong sparsity pattern for output argument #%d.\n"), m_pCallFunctionName[what], i+1);
                     throw ast::InternalError(errorMsg);                                            
                 }                 
             }            
@@ -839,12 +839,12 @@ bool OptimizationManager::computeFunctionsAndDerivatives(double *x, bool new_x, 
         {
             if (out[i]->isDouble() == false || out[i]->getAs<types::Double>()->isComplex() || out[i]->getAs<types::Double>()->isEmpty())
             {
-                sprintf(errorMsg, _("%s: Wrong type for output argument #%d: Real matrix expected.\n"), m_pCallFunctionName[what], i+1);
+                snprintf(errorMsg, sizeof(errorMsg), _("%s: Wrong type for output argument #%d: Real matrix expected.\n"), m_pCallFunctionName[what], i+1);
                 throw ast::InternalError(errorMsg);            
             }
             if (out[i]->getAs<types::Double>()->getSize() != m_iSizeOfScilabOutput[whatArray[i]])
             {
-                sprintf(errorMsg, _("%s: Wrong size for output argument #%d: A matrix of size %d expected.\n"), m_pCallFunctionName[what], i+1,m_iSizeOfScilabOutput[whatArray[i]]);   
+                snprintf(errorMsg, sizeof(errorMsg), _("%s: Wrong size for output argument #%d: A matrix of size %d expected.\n"), m_pCallFunctionName[what], i+1,m_iSizeOfScilabOutput[whatArray[i]]);   
                 throw ast::InternalError(errorMsg);
             }
             memcpy(m_pdblIpoptInput[whatArray[i]], out[i]->getAs<types::Double>()->get(), sizeof(double)*m_iSizeOfScilabOutput[whatArray[i]]);                                
@@ -962,7 +962,7 @@ bool OptimizationManager::computeHessian(double *x, bool new_x, double obj_facto
 
     if (out.size() != iRetCount)
     {
-        sprintf(errorMsg, _("%s: Wrong number of output argument(s): %d expected.\n"), m_pCallFunctionName[what], iRetCount);
+        snprintf(errorMsg, sizeof(errorMsg), _("%s: Wrong number of output argument(s): %d expected.\n"), m_pCallFunctionName[what], iRetCount);
         throw ast::InternalError(errorMsg);
     }
     
@@ -989,18 +989,18 @@ void OptimizationManager::checkHessianOutput(types::InternalType *pIn, functionK
         // Hessian is supposed to be given as a Scilab sparse matrix
         if (pIn->isSparse() == false || pIn->getAs<types::Sparse>()->isComplex())
         {
-            sprintf(errorMsg, _("%s: Wrong type for output argument #%d: sparse real matrix expected.\n"), m_pCallFunctionName[what], 1);
+            snprintf(errorMsg, sizeof(errorMsg), _("%s: Wrong type for output argument #%d: sparse real matrix expected.\n"), m_pCallFunctionName[what], 1);
             throw ast::InternalError(errorMsg);
         }
         types::Sparse *pSp = pIn->getAs<types::Sparse>();
         if (pSp->getRows() != m_iNbVariables || pSp->getCols() != m_iNbVariables)
         {
-            sprintf(errorMsg, _("%s: Wrong size for output argument #%d: a matrix with %d rows and %d columns expected.\n"), m_pCallFunctionName[what], 1, m_iNbVariables, m_iNbVariables);
+            snprintf(errorMsg, sizeof(errorMsg), _("%s: Wrong size for output argument #%d: a matrix with %d rows and %d columns expected.\n"), m_pCallFunctionName[what], 1, m_iNbVariables, m_iNbVariables);
             throw ast::InternalError(errorMsg);
         }
         if (pSp->nonZeros() > m_iNbUserHessianNonZeroTerms)
         {
-            sprintf(errorMsg, _("%s: Wrong sparsity pattern for output argument #%d: at most %d non-zero elements expected.\n"), m_pCallFunctionName[what], 1, m_iNbConstraintsJacobianNonZeroTerms);
+            snprintf(errorMsg, sizeof(errorMsg), _("%s: Wrong sparsity pattern for output argument #%d: at most %d non-zero elements expected.\n"), m_pCallFunctionName[what], 1, m_iNbConstraintsJacobianNonZeroTerms);
             throw ast::InternalError(errorMsg);                    
         }
         if (m_iNbLowerTriHessianNonZeroTerms == m_iNbUserHessianNonZeroTerms)
@@ -1017,7 +1017,7 @@ void OptimizationManager::checkHessianOutput(types::InternalType *pIn, functionK
                 // stability of pattern was not achieved, let's try to fix this
                 if (getSparseValuesFromIncompletePattern(m_pdblIpoptInput[what], m_pSpHessianPattern, pSp) == false)
                 {
-                    sprintf(errorMsg, _("%s: Wrong sparsity pattern for output argument #%d.\n"), m_pCallFunctionName[what], 1);
+                    snprintf(errorMsg, sizeof(errorMsg), _("%s: Wrong sparsity pattern for output argument #%d.\n"), m_pCallFunctionName[what], 1);
                     throw ast::InternalError(errorMsg);                                            
                 }          
             }      
@@ -1038,7 +1038,7 @@ void OptimizationManager::checkHessianOutput(types::InternalType *pIn, functionK
                 if (getSparseValuesFromIncompletePattern(pdblSrc, m_pSpHessianPattern, pSp) == false)
                 {
                     delete[] pdblSrc;
-                    sprintf(errorMsg, _("%s: Wrong sparsity pattern for output argument #%d.\n"), m_pCallFunctionName[what], 1);
+                    snprintf(errorMsg, sizeof(errorMsg), _("%s: Wrong sparsity pattern for output argument #%d.\n"), m_pCallFunctionName[what], 1);
                     throw ast::InternalError(errorMsg);                                            
                 }                 
             }
@@ -1059,7 +1059,7 @@ void OptimizationManager::checkHessianOutput(types::InternalType *pIn, functionK
         types::Double *pDbl =  pIn->getAs<types::Double>();
         if (pIn->isDouble() == false || pIn->getAs<types::Double>()->isComplex() || pIn->getAs<types::Double>()->isEmpty())
         {
-            sprintf(errorMsg, _("%s: Wrong type for output argument #%d: Real matrix expected.\n"), m_pCallFunctionName[what], 1);
+            snprintf(errorMsg, sizeof(errorMsg), _("%s: Wrong type for output argument #%d: Real matrix expected.\n"), m_pCallFunctionName[what], 1);
             throw ast::InternalError(errorMsg);            
         }
 
@@ -1070,7 +1070,7 @@ void OptimizationManager::checkHessianOutput(types::InternalType *pIn, functionK
             // Hessian is full, expected returned as such from user function
             if (iDims != 2 || pDbl->getSize() != (m_iNbVariables*m_iNbVariables) || pDbl->getRows() != pDbl->getCols())
             {
-                sprintf(errorMsg, _("%s: Wrong size for output argument #%d: A matrix of size %d x %d expected.\n"), m_pCallFunctionName[what], 1,m_iNbVariables,m_iNbVariables);           
+                snprintf(errorMsg, sizeof(errorMsg), _("%s: Wrong size for output argument #%d: A matrix of size %d x %d expected.\n"), m_pCallFunctionName[what], 1,m_iNbVariables,m_iNbVariables);           
                 throw ast::InternalError(errorMsg);            
             }
             // fast copy of lower triangular part of matrix, column compressed, matching pattern set in OptimizationManager::parseMatrices
@@ -1089,7 +1089,7 @@ void OptimizationManager::checkHessianOutput(types::InternalType *pIn, functionK
         }
         else if (pDbl->getSize() != m_iSizeOfScilabOutput[what])
         {
-            sprintf(errorMsg, _("%s: Wrong size for output argument #%d: A matrix of size %d expected.\n"), m_pCallFunctionName[what], 1,m_iSizeOfScilabOutput[what]);   
+            snprintf(errorMsg, sizeof(errorMsg), _("%s: Wrong size for output argument #%d: A matrix of size %d expected.\n"), m_pCallFunctionName[what], 1,m_iSizeOfScilabOutput[what]);   
             throw ast::InternalError(errorMsg);
         }
         else // user gave Hessian pattern
@@ -1225,13 +1225,13 @@ const Ipopt::IpoptData *ip_data, Ipopt::IpoptCalculatedQuantities *ip_cq)
 
     if (out.size() != 1)
     {
-        sprintf(errorMsg, _("%s: Wrong number of output argument(s): %d expected.\n"), m_pCallFunctionName[INTCB], 1);
+        snprintf(errorMsg, sizeof(errorMsg), _("%s: Wrong number of output argument(s): %d expected.\n"), m_pCallFunctionName[INTCB], 1);
         throw ast::InternalError(errorMsg);
     }
 
     if (out[0]->isBool() == false)
     {
-        sprintf(errorMsg, _("%s: Wrong type for output argument #%d: boolean expected.\n"), m_pCallFunctionName[INTCB], 1);
+        snprintf(errorMsg, sizeof(errorMsg), _("%s: Wrong type for output argument #%d: boolean expected.\n"), m_pCallFunctionName[INTCB], 1);
         throw ast::InternalError(errorMsg);            
     }
     

@@ -52,6 +52,8 @@ if getos() == "Linux" then
 elseif getos() == "Darwin"
     // macOS arm64 port: Eigen from Homebrew (SCI/lib/Eigen/includes is absent in a source build)
     cflags = cflags + ' -I/opt/homebrew/opt/eigen/include/eigen3';
+    // macOS has no libintl.h on the default include path; Scilab's localization.h needs it.
+    cflags = cflags + ' -I/opt/homebrew/opt/gettext/include';
     conda = getenv("CONDA_PREFIX","UNDEFINED");
     if conda <> "UNDEFINED"
         cflags = cflags + " -I" + fullfile(conda,"include");
@@ -79,6 +81,12 @@ if getos()=="Windows" then
 elseif getos() == "Darwin"
     // Homebrew IPOPT links MUMPS (libdmumps) transitively — no separate -lcoinmumps
     ldflags  = '-L' + fullfile(tools_path,'lib') + ' -lipopt';
+    // Homebrew IPOPT pulls the gcc runtime (-lemutls_w, -lgfortran) transitively; the
+    // compiler's built-in gcc lib search path goes stale after a gcc bump, so add the
+    // current gcc lib dir explicitly (version-independent 'current' symlink).
+    gcc_lib = stripblanks(unix_g("dirname $(ls /opt/homebrew/lib/gcc/current/gcc/*/*/libemutls_w.a 2>/dev/null | head -1)"));
+    if gcc_lib <> "" then ldflags = ldflags + " -L" + gcc_lib; end
+    if isdir("/opt/homebrew/lib/gcc/current") then ldflags = ldflags + " -L/opt/homebrew/lib/gcc/current"; end
 else
     ldflags  = '-L' + fullfile(tools_path,'lib') + ' -lipopt -lcoinmumps';
 end

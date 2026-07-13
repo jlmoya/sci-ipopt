@@ -39,7 +39,7 @@ bool getDoubleInPList(types::Struct *pStruct, const wchar_t * _pwstLabel, double
         }
         else
         {
-            os_sprintf(message,_("%s: wrong value type for parameter \"%ls\": %s expected.\n"), "ipopt",_pwstLabel, "double");
+            snprintf(message, sizeof(message),_("%s: wrong value type for parameter \"%ls\": %s expected.\n"), "ipopt",_pwstLabel, "double");
             throw ast::InternalError(message);
         }
     }
@@ -66,7 +66,7 @@ bool getDoubleInPList(types::Struct *pStruct, const wchar_t * _pwstLabel, double
                     va_end(vl);
                     if (value_to_check > *_pdblValue)
                     {
-                        os_sprintf(message,_("%s: wrong value %f for parameter %ls: lower bound is %f.\n"), "ipopt", *_pdblValue, _pwstLabel, value_to_check);
+                        snprintf(message, sizeof(message),_("%s: wrong value %f for parameter %ls: lower bound is %f.\n"), "ipopt", *_pdblValue, _pwstLabel, value_to_check);
                         throw ast::InternalError(message);
                     }
                     break;
@@ -75,7 +75,7 @@ bool getDoubleInPList(types::Struct *pStruct, const wchar_t * _pwstLabel, double
                     va_end(vl);
                     if (value_to_check < *_pdblValue)
                     {
-                        os_sprintf(message,_("%s: wrong value %f for parameter %ls: upper bound is %f.\n"), "ipopt", *_pdblValue, _pwstLabel, value_to_check);
+                        snprintf(message, sizeof(message),_("%s: wrong value %f for parameter %ls: upper bound is %f.\n"), "ipopt", *_pdblValue, _pwstLabel, value_to_check);
                         throw ast::InternalError(message);
                     }
                     break;
@@ -84,7 +84,7 @@ bool getDoubleInPList(types::Struct *pStruct, const wchar_t * _pwstLabel, double
                     value_to_check = va_arg(vl, double);
                     if (value_to_check > *_pdblValue)
                     {
-                        os_sprintf(message,_("%s: wrong value %f for parameter %ls: lower bound is %f.\n"), "ipopt", *_pdblValue, _pwstLabel, value_to_check);
+                        snprintf(message, sizeof(message),_("%s: wrong value %f for parameter %ls: lower bound is %f.\n"), "ipopt", *_pdblValue, _pwstLabel, value_to_check);
                         throw ast::InternalError(message);
                     }
                     /* Second value is the max bound */
@@ -92,7 +92,7 @@ bool getDoubleInPList(types::Struct *pStruct, const wchar_t * _pwstLabel, double
                     va_end(vl);
                     if (value_to_check < *_pdblValue)
                     {
-                        os_sprintf(message,_("%s: wrong value %f for parameter %ls: upper bound is %f.\n"), "ipopt", *_pdblValue, _pwstLabel, value_to_check);
+                        snprintf(message, sizeof(message),_("%s: wrong value %f for parameter %ls: upper bound is %f.\n"), "ipopt", *_pdblValue, _pwstLabel, value_to_check);
                         throw ast::InternalError(message);
                     }
                     break;
@@ -155,7 +155,7 @@ bool getIntInPList(types::Struct *pStruct, const wchar_t * _pwstLabel, int * _pi
         }
         else
         {
-            os_sprintf(message,_("%s: wrong value type for parameter \"%ls\": %s expected.\n"), "ipopt",_pwstLabel, "double");
+            snprintf(message, sizeof(message),_("%s: wrong value type for parameter \"%ls\": %s expected.\n"), "ipopt",_pwstLabel, "double");
             throw ast::InternalError(message);
         }
     }
@@ -182,7 +182,7 @@ bool getIntInPList(types::Struct *pStruct, const wchar_t * _pwstLabel, int * _pi
                 va_end(vl);
                 if (value_to_check > *_piValue)
                 {
-                    os_sprintf(message,_("%s: wrong value %d for parameter %ls: lower bound is %d.\n"), "ipopt", *_piValue, _pwstLabel, value_to_check);
+                    snprintf(message, sizeof(message),_("%s: wrong value %d for parameter %ls: lower bound is %d.\n"), "ipopt", *_piValue, _pwstLabel, value_to_check);
                     throw ast::InternalError(message);
                 }
                 break;
@@ -191,7 +191,7 @@ bool getIntInPList(types::Struct *pStruct, const wchar_t * _pwstLabel, int * _pi
                 va_end(vl);
                 if (value_to_check < *_piValue)
                 {
-                    os_sprintf(message,_("%s: wrong value %d for parameter %ls: upper bound is %d.\n"), "ipopt", *_piValue, _pwstLabel, value_to_check);
+                    snprintf(message, sizeof(message),_("%s: wrong value %d for parameter %ls: upper bound is %d.\n"), "ipopt", *_piValue, _pwstLabel, value_to_check);
                     throw ast::InternalError(message);
                 }
                 break;
@@ -200,7 +200,7 @@ bool getIntInPList(types::Struct *pStruct, const wchar_t * _pwstLabel, int * _pi
                 value_to_check = va_arg(vl, int);
                 if (value_to_check > *_piValue)
                 {
-                    os_sprintf(message,_("%s: wrong value %d for parameter %ls: lower bound is %d.\n"), "ipopt", *_piValue, _pwstLabel, value_to_check);
+                    snprintf(message, sizeof(message),_("%s: wrong value %d for parameter %ls: lower bound is %d.\n"), "ipopt", *_piValue, _pwstLabel, value_to_check);
                     throw ast::InternalError(message);
                 }
                 /* Second value is the max bound */
@@ -208,7 +208,7 @@ bool getIntInPList(types::Struct *pStruct, const wchar_t * _pwstLabel, int * _pi
                 va_end(vl);
                 if (value_to_check < *_piValue)
                 {
-                    os_sprintf(message,_("%s: wrong value %d for parameter %ls: upper bound is %d.\n"), "ipopt", *_piValue, _pwstLabel, value_to_check);
+                    snprintf(message, sizeof(message),_("%s: wrong value %d for parameter %ls: upper bound is %d.\n"), "ipopt", *_piValue, _pwstLabel, value_to_check);
                     throw ast::InternalError(message);
                 }
                 break;
@@ -272,7 +272,7 @@ bool getStringInPList(types::Struct *pStruct, const wchar_t * _pwstLabel, char *
         }
         else
         {
-            os_sprintf(message,_("%s: wrong value type for parameter \"%ls\": %s expected.\n"), "ipopt",_pwstLabel, "string");
+            snprintf(message, sizeof(message),_("%s: wrong value type for parameter \"%ls\": %s expected.\n"), "ipopt",_pwstLabel, "string");
             throw ast::InternalError(message);
         }
     }
@@ -307,7 +307,7 @@ bool getStringInPList(types::Struct *pStruct, const wchar_t * _pwstLabel, char *
                 if (!check_res)
                 {
                     std::ostringstream os;
-                    os_sprintf(message,_("%s: wrong value \"%s\" for parameter %ls. Expected values are "), "ipopt", *_pstValue, _pwstLabel );
+                    snprintf(message, sizeof(message),_("%s: wrong value \"%s\" for parameter %ls. Expected values are "), "ipopt", *_pstValue, _pwstLabel );
                     os << message;
                     va_end(vl);
                     va_start(vl, _eCheck);
